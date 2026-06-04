@@ -1,51 +1,48 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package texteditorundoredo;
 
-/**
- *
- * @author ADMIN
- */
 public class TextEditorUndoRedo {
-   public static void main(String[] args) {
 
-        TextEditorManager editor =
-                new TextEditorManager(10);
+    public static void main(String[] args) {
 
-        StateVisualizer visualizer =
-                new StateVisualizer(editor);
+        TextEditorManager editor = new TextEditorManager(10);
+
+        StateVisualizer visualizer = new StateVisualizer(editor);
 
         System.out.println("===== TYPE TEXT =====");
 
         editor.typeText("Hello");
         editor.typeText(" World");
 
-        visualizer.displayCurrentText();
+        visualizer.displayFullState();
 
         System.out.println("\n===== DELETE =====");
 
         editor.deleteText(5, 11);
 
-        visualizer.displayCurrentText();
+        visualizer.displayFullState();
 
-        System.out.println("\n===== UNDO =====");
+        System.out.println("\n===== UNDO DELETE =====");
 
         editor.performUndo();
 
-        visualizer.displayCurrentText();
+        visualizer.displayFullState();
 
-        System.out.println("\n===== REDO =====");
+        System.out.println("\n===== UNDO TYPE WORLD =====");
+
+        editor.performUndo();
+
+        visualizer.displayFullState();
+
+        System.out.println("\n===== REDO TYPE WORLD =====");
 
         editor.performRedo();
 
-        visualizer.displayCurrentText();
+        visualizer.displayFullState();
 
-        System.out.println("\n===== SYSTEM STATE =====");
+        System.out.println("\n===== REDO DELETE =====");
+
+        editor.performRedo();
 
         visualizer.displayFullState();
     }
-}  
-    
-
+}
