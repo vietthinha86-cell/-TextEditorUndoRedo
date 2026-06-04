@@ -1,18 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package texteditorundoredo;
-
-/**
- *
- * @author ADMIN
- */
+﻿package texteditorundoredo;
 
 public class UndoRedoEngine {
 
-    private BoundedStack<DocumentState> undoStack;
-    private BoundedStack<DocumentState> redoStack;
+    private BoundedStack<ActionBatch> undoStack;
+    private BoundedStack<ActionBatch> redoStack;
     private int capacity;
 
     public UndoRedoEngine(int capacity) {
@@ -23,32 +14,37 @@ public class UndoRedoEngine {
         redoStack = new BoundedStack<>(capacity);
     }
 
-    public void saveState(DocumentState state) {
+    public void saveAction(ActionBatch action) {
 
-        undoStack.push(state);
+        undoStack.push(action);
+
+        // Khi user gõ/xóa hành động mới,
+        // redo cũ không còn hợp lệ nữa.
         clearRedoStack();
     }
 
-    public DocumentState undo(DocumentState currentState) {
+    public ActionBatch undo() {
 
         if (undoStack.isEmpty()) {
-            return currentState;
+            return null;
         }
 
-        redoStack.push(currentState);
+        ActionBatch action = undoStack.pop();
+        redoStack.push(action);
 
-        return undoStack.pop();
+        return action;
     }
 
-    public DocumentState redo(DocumentState currentState) {
+    public ActionBatch redo() {
 
         if (redoStack.isEmpty()) {
-            return currentState;
+            return null;
         }
 
-        undoStack.push(currentState);
+        ActionBatch action = redoStack.pop();
+        undoStack.push(action);
 
-        return redoStack.pop();
+        return action;
     }
 
     public void clearRedoStack() {
@@ -63,11 +59,11 @@ public class UndoRedoEngine {
         return !redoStack.isEmpty();
     }
 
-    public BoundedStack<DocumentState> getUndoStack() {
+    public BoundedStack<ActionBatch> getUndoStack() {
         return undoStack;
     }
 
-    public BoundedStack<DocumentState> getRedoStack() {
+    public BoundedStack<ActionBatch> getRedoStack() {
         return redoStack;
     }
 }

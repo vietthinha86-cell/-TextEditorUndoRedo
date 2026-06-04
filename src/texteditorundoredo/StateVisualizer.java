@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package texteditorundoredo;
-
-/**
- *
- * @author ADMIN
- */
 
 public class StateVisualizer {
 
@@ -27,14 +18,12 @@ public class StateVisualizer {
 
         System.out.println("\nUNDO STACK:");
 
-        for (DocumentState state :
+        for (ActionBatch action :
                 manager.getEngine()
                         .getUndoStack()
                         .getItems()) {
 
-            System.out.println(
-                    state.getActionDescription()
-            );
+            System.out.println(action);
         }
     }
 
@@ -42,15 +31,23 @@ public class StateVisualizer {
 
         System.out.println("\nREDO STACK:");
 
-        for (DocumentState state :
+        for (ActionBatch action :
                 manager.getEngine()
                         .getRedoStack()
                         .getItems()) {
 
-            System.out.println(
-                    state.getActionDescription()
-            );
+            System.out.println(action);
         }
+    }
+
+    public void displayDocumentState() {
+
+        System.out.println("\nDOCUMENT STATE:");
+
+        DocumentState state =
+                manager.getCurrentState("Display Current State");
+
+        state.displayState();
     }
 
     public void displayFullState() {
@@ -58,5 +55,6 @@ public class StateVisualizer {
         displayCurrentText();
         displayUndoStack();
         displayRedoStack();
+        displayDocumentState();
     }
 }
