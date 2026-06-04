@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package texteditorundoredo;
-
-/**
- *
- * @author ADMIN
- */
 
 import java.time.LocalDateTime;
 
@@ -15,8 +6,8 @@ public class TextEditorManager {
 
     private StringBuilder currentText;
     private UndoRedoEngine engine;
-    private ActionBatch currentBatch;
 
+    private int batchCounter = 0;
     private int stateCounter = 0;
 
     public TextEditorManager(int capacity) {
@@ -27,9 +18,49 @@ public class TextEditorManager {
 
     public void typeText(String text) {
 
-        saveCurrentState("Before Typing");
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        int position = currentText.length();
 
         currentText.append(text);
+
+        batchCounter++;
+
+        ActionBatch action = new ActionBatch(
+                batchCounter,
+                ActionType.INSERT,
+                text,
+                position
+        );
+
+        engine.saveAction(action);
+    }
+
+    public void insertText(int position, String text) {
+
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        if (position < 0 || position > currentText.length()) {
+            System.out.println("Invalid insert position!");
+            return;
+        }
+
+        currentText.insert(position, text);
+
+        batchCounter++;
+
+        ActionBatch action = new ActionBatch(
+                batchCounter,
+                ActionType.INSERT,
+                text,
+                position
+        );
+
+        engine.saveAction(action);
     }
 
     public void deleteText(int start, int end) {
@@ -39,59 +70,98 @@ public class TextEditorManager {
             return;
         }
 
-        saveCurrentState("Before Delete");
+        String deletedText = currentText.substring(start, end);
 
         currentText.delete(start, end);
+
+        batchCounter++;
+
+        ActionBatch action = new ActionBatch(
+                batchCounter,
+                ActionType.DELETE,
+                deletedText,
+                start
+        );
+
+        engine.saveAction(action);
     }
 
     public void performUndo() {
 
-        DocumentState currentState =
-                createState("Current State");
+        if (!engine.canUndo()) {
+            System.out.println("Nothing to undo.");
+            return;
+        }
 
-        DocumentState previousState =
-                engine.undo(currentState);
+        ActionBatch action = engine.undo();
 
-        currentText = new StringBuilder(previousState.getContent());
+        applyReverse(action);
     }
 
     public void performRedo() {
 
-        DocumentState currentState =
-                createState("Current State");
+        if (!engine.canRedo()) {
+            System.out.println("Nothing to redo.");
+            return;
+        }
 
-        DocumentState nextState =
-                engine.redo(currentState);
+        ActionBatch action = engine.redo();
 
-        currentText = new StringBuilder(nextState.getContent());
+        applyAction(action);
+    }
+
+    private void applyAction(ActionBatch action) {
+
+        if (action.getActionType() == ActionType.INSERT) {
+
+            currentText.insert(
+                    action.getStartPosition(),
+                    action.getBatchedText()
+            );
+
+        } else if (action.getActionType() == ActionType.DELETE) {
+
+            int start = action.getStartPosition();
+            int end = start + action.length();
+
+            if (start >= 0 && end <= currentText.length()) {
+                currentText.delete(start, end);
+            }
+        }
+    }
+
+    private void applyReverse(ActionBatch action) {
+
+        if (action.getActionType() == ActionType.INSERT) {
+
+            int start = action.getStartPosition();
+            int end = start + action.length();
+
+            if (start >= 0 && end <= currentText.length()) {
+                currentText.delete(start, end);
+            }
+
+        } else if (action.getActionType() == ActionType.DELETE) {
+
+            currentText.insert(
+                    action.getStartPosition(),
+                    action.getBatchedText()
+            );
+        }
     }
 
     public String getCurrentText() {
         return currentText.toString();
     }
 
-    public void commitCurrentBatch() {
-
-        if (currentBatch != null) {
-            System.out.println("Batch committed.");
-        }
-    }
-
-    private void saveCurrentState(String action) {
-
-        DocumentState state = createState(action);
-
-        engine.saveState(state);
-    }
-
-    private DocumentState createState(String action) {
+    public DocumentState getCurrentState(String actionDescription) {
 
         stateCounter++;
 
         return new DocumentState(
                 stateCounter,
                 currentText.toString(),
-                action,
+                actionDescription,
                 LocalDateTime.now().toString()
         );
     }

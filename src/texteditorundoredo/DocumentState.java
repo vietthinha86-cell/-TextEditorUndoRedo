@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package texteditorundoredo;
-
-/**
- *
- * @author ADMIN
- */
 
 public class DocumentState {
 
@@ -18,10 +9,15 @@ public class DocumentState {
 
     public DocumentState(int stateId, String content,
             String actionDescription, String createdTime) {
+
         this.stateId = stateId;
         this.content = content;
         this.actionDescription = actionDescription;
         this.createdTime = createdTime;
+    }
+
+    public int getStateId() {
+        return stateId;
     }
 
     public String getContent() {
@@ -32,11 +28,8 @@ public class DocumentState {
         return actionDescription;
     }
 
-    public void deleteText(int start, int end) {
-        if (start >= 0 && end <= content.length() && start < end) {
-            content = content.substring(0, start)
-                    + content.substring(end);
-        }
+    public String getCreatedTime() {
+        return createdTime;
     }
 
     public void displayState() {

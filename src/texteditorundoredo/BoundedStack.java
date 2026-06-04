@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package texteditorundoredo;
-
-/**
- *
- * @author ADMIN
- */
 
 import java.util.ArrayList;
 
@@ -17,11 +8,20 @@ public class BoundedStack<T> {
     private int capacity;
 
     public BoundedStack(int capacity) {
+
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
+        }
+
         this.capacity = capacity;
         this.items = new ArrayList<>();
     }
 
     public void push(T item) {
+
+        if (item == null) {
+            return;
+        }
 
         if (isFull()) {
             removeOldest();
@@ -72,6 +72,6 @@ public class BoundedStack<T> {
     }
 
     public ArrayList<T> getItems() {
-        return items;
+        return new ArrayList<>(items);
     }
 }
