@@ -1,10 +1,10 @@
-﻿package texteditorundoredo;
+package texteditorundoredo;
 
 public class UndoRedoEngine {
 
     private BoundedStack<ActionBatch> undoStack;
     private BoundedStack<ActionBatch> redoStack;
-    private int capacity;
+    private final int capacity;
 
     public UndoRedoEngine(int capacity) {
 

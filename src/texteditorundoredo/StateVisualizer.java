@@ -9,13 +9,11 @@ public class StateVisualizer {
     }
 
     public void displayCurrentText() {
-
         System.out.println("Current Text:");
         System.out.println(manager.getCurrentText());
     }
 
     public void displayUndoStack() {
-
         System.out.println("\nUNDO STACK:");
 
         for (ActionBatch action :
@@ -28,7 +26,6 @@ public class StateVisualizer {
     }
 
     public void displayRedoStack() {
-
         System.out.println("\nREDO STACK:");
 
         for (ActionBatch action :
@@ -41,7 +38,6 @@ public class StateVisualizer {
     }
 
     public void displayDocumentState() {
-
         System.out.println("\nDOCUMENT STATE:");
 
         DocumentState state =
@@ -51,7 +47,6 @@ public class StateVisualizer {
     }
 
     public void displayFullState() {
-
         displayCurrentText();
         displayUndoStack();
         displayRedoStack();

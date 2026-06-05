@@ -1,48 +1,96 @@
 package texteditorundoredo;
 
+import java.util.Scanner;
+
 public class TextEditorUndoRedo {
 
     public static void main(String[] args) {
 
-        TextEditorManager editor = new TextEditorManager(10);
+        Scanner scanner = new Scanner(System.in);
 
+        TextEditorManager editor = new TextEditorManager(10);
         StateVisualizer visualizer = new StateVisualizer(editor);
 
-        System.out.println("===== TYPE TEXT =====");
+        int choice;
 
-        editor.typeText("Hello");
-        editor.typeText(" World");
+        do {
+            System.out.println("\n========== TEXT EDITOR UNDO/REDO ==========");
+            System.out.println("Current Text:ditmemaykhoa \"" + editor.getCurrentText() + "\"");
+            System.out.println("-------------------------------------------");
+            System.out.println("1. Type text at end");
+            System.out.println("2. Insert text at position");
+            System.out.println("3. Delete text by range");
+            System.out.println("4. Undo");
+            System.out.println("5. Redo");
+            System.out.println("6. Display full state");
+            System.out.println("0. Exit");
+            System.out.print("Choose option: ");
 
-        visualizer.displayFullState();
+            choice = scanner.nextInt();
+            scanner.nextLine(); // clear Enter
 
-        System.out.println("\n===== DELETE =====");
+            switch (choice) {
 
-        editor.deleteText(5, 11);
+                case 1:
+                    System.out.print("Enter text to type: ");
+                    String text = scanner.nextLine();
 
-        visualizer.displayFullState();
+                    editor.typeText(text);
 
-        System.out.println("\n===== UNDO DELETE =====");
+                    System.out.println("Text typed successfully.");
+                    break;
 
-        editor.performUndo();
+                case 2:
+                    System.out.print("Enter position: ");
+                    int insertPosition = scanner.nextInt();
+                    scanner.nextLine();
 
-        visualizer.displayFullState();
+                    System.out.print("Enter text to insert: ");
+                    String insertText = scanner.nextLine();
 
-        System.out.println("\n===== UNDO TYPE WORLD =====");
+                    editor.insertText(insertPosition, insertText);
 
-        editor.performUndo();
+                    System.out.println("Insert operation finished.");
+                    break;
 
-        visualizer.displayFullState();
+                case 3:
+                    System.out.print("Enter start position: ");
+                    int start = scanner.nextInt();
 
-        System.out.println("\n===== REDO TYPE WORLD =====");
+                    System.out.print("Enter end position: ");
+                    int end = scanner.nextInt();
+                    scanner.nextLine();
 
-        editor.performRedo();
+                    editor.deleteText(start, end);
 
-        visualizer.displayFullState();
+                    System.out.println("Delete operation finished.");
+                    break;
 
-        System.out.println("\n===== REDO DELETE =====");
+                case 4:
+                    editor.performUndo();
+                    System.out.println("Undo operation finished.");
+                    break;
 
-        editor.performRedo();
+                case 5:
+                    editor.performRedo();
+                    System.out.println("Redo operation finished.");
+                    break;
 
-        visualizer.displayFullState();
+                case 6:
+                    visualizer.displayFullState();
+                    break;
+
+                case 0:
+                    System.out.println("Program ended.");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please choose again.");
+                    break;
+            }
+
+        } while (choice != 0);
+
+        scanner.close();
     }
 }
