@@ -15,7 +15,7 @@ public class TextEditorUndoRedo {
 
         do {
             System.out.println("\n========== TEXT EDITOR UNDO/REDO ==========");
-            System.out.println("Current Text:ditmemaykhoa \"" + editor.getCurrentText() + "\"");
+            System.out.println("Current Text: \"" + editor.getCurrentText() + "\"");
             System.out.println("-------------------------------------------");
             System.out.println("1. Type text at end");
             System.out.println("2. Insert text at position");
