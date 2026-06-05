@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public class TextEditorManager {
 
-    private StringBuilder currentText;
-    private UndoRedoEngine engine;
+    private final StringBuilder currentText;
+    private final UndoRedoEngine engine;
 
     private int batchCounter = 0;
     private int stateCounter = 0;
