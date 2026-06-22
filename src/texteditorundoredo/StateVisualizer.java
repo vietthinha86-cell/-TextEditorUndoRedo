@@ -27,7 +27,7 @@ public class StateVisualizer {
 
     public void displayRedoStack() {
         System.out.println("\nREDO STACK:");
-
+        
         for (ActionBatch action :
                 manager.getEngine()
                         .getRedoStack()

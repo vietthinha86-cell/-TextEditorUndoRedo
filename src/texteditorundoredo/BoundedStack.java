@@ -60,6 +60,10 @@ public class BoundedStack<T> {
         return items.size();
     }
 
+    public int getCapacity() {
+        return capacity;
+    }
+
     public void removeOldest() {
 
         if (!items.isEmpty()) {

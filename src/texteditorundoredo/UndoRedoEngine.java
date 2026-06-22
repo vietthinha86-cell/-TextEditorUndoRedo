@@ -9,7 +9,6 @@ public class UndoRedoEngine {
     public UndoRedoEngine(int capacity) {
 
         this.capacity = capacity;
-
         undoStack = new BoundedStack<>(capacity);
         redoStack = new BoundedStack<>(capacity);
     }
@@ -17,9 +16,6 @@ public class UndoRedoEngine {
     public void saveAction(ActionBatch action) {
 
         undoStack.push(action);
-
-        // Khi user gõ/xóa hành động mới,
-        // redo cũ không còn hợp lệ nữa.
         clearRedoStack();
     }
 
@@ -29,10 +25,10 @@ public class UndoRedoEngine {
             return null;
         }
 
-        ActionBatch action = undoStack.pop();
-        redoStack.push(action);
+        ActionBatch latestAction = undoStack.pop();
+        redoStack.push(latestAction);
 
-        return action;
+        return latestAction;
     }
 
     public ActionBatch redo() {
@@ -41,10 +37,10 @@ public class UndoRedoEngine {
             return null;
         }
 
-        ActionBatch action = redoStack.pop();
-        undoStack.push(action);
+        ActionBatch latestAction = redoStack.pop();
+        undoStack.push(latestAction);
 
-        return action;
+        return latestAction;
     }
 
     public void clearRedoStack() {
@@ -65,5 +61,9 @@ public class UndoRedoEngine {
 
     public BoundedStack<ActionBatch> getRedoStack() {
         return redoStack;
+    }
+
+    public int getCapacity() {
+        return capacity;
     }
 }

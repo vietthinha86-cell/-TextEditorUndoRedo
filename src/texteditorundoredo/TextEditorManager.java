@@ -6,6 +6,7 @@ public class TextEditorManager {
 
     private final StringBuilder currentText;
     private final UndoRedoEngine engine;
+    private ActionBatch currentBatch;
 
     private int batchCounter = 0;
     private int stateCounter = 0;
@@ -14,6 +15,7 @@ public class TextEditorManager {
 
         currentText = new StringBuilder();
         engine = new UndoRedoEngine(capacity);
+        currentBatch = null;
     }
 
     public void typeText(String text) {
@@ -22,20 +24,14 @@ public class TextEditorManager {
             return;
         }
 
-        int position = currentText.length();
+        for (int i = 0; i < text.length(); i++) {
+            String input = String.valueOf(text.charAt(i));
+            int position = currentText.length();
+            boolean isContinuous = isContinuousInsert(position);
 
-        currentText.append(text);
-
-        batchCounter++;
-
-        ActionBatch action = new ActionBatch(
-                batchCounter,
-                ActionType.INSERT,
-                text,
-                position
-        );
-
-        engine.saveAction(action);
+            saveStateWithBatching(ActionType.INSERT, input, position, isContinuous);
+            currentText.insert(position, input);
+        }
     }
 
     public void insertText(int position, String text) {
@@ -49,18 +45,14 @@ public class TextEditorManager {
             return;
         }
 
-        currentText.insert(position, text);
+        for (int i = 0; i < text.length(); i++) {
+            String input = String.valueOf(text.charAt(i));
+            int insertPosition = position + i;
+            boolean isContinuous = (i > 0) || isContinuousInsert(insertPosition);
 
-        batchCounter++;
-
-        ActionBatch action = new ActionBatch(
-                batchCounter,
-                ActionType.INSERT,
-                text,
-                position
-        );
-
-        engine.saveAction(action);
+            saveStateWithBatching(ActionType.INSERT, input, insertPosition, isContinuous);
+            currentText.insert(insertPosition, input);
+        }
     }
 
     public void deleteText(int start, int end) {
@@ -71,19 +63,58 @@ public class TextEditorManager {
         }
 
         String deletedText = currentText.substring(start, end);
+        boolean isContinuous = isContinuousDelete(start, deletedText.length());
 
+        saveStateWithBatching(ActionType.DELETE, deletedText, start, isContinuous);
         currentText.delete(start, end);
+    }
 
-        batchCounter++;
+    public void saveStateWithBatching(String actionType, String newInput,
+            boolean isContinuous) {
 
-        ActionBatch action = new ActionBatch(
-                batchCounter,
-                ActionType.DELETE,
-                deletedText,
-                start
-        );
+        ActionType type = parseActionType(actionType);
 
-        engine.saveAction(action);
+        if (type == ActionType.INSERT) {
+            int position = currentText.length();
+            saveStateWithBatching(type, newInput, position, isContinuous);
+            currentText.insert(position, newInput);
+            return;
+        }
+
+        if (type == ActionType.DELETE) {
+            int start = Math.max(0, currentText.length() - newInput.length());
+            saveStateWithBatching(type, newInput, start, isContinuous);
+            currentText.delete(start, currentText.length());
+        }
+    }
+
+    private void saveStateWithBatching(ActionType actionType, String newInput,
+            int position, boolean isContinuous) {
+
+        if (newInput == null || newInput.isEmpty()) {
+            return;
+        }
+
+        boolean canMerge = currentBatch != null
+                && currentBatch.canMerge(actionType, isContinuous,
+                        position, newInput.length());
+
+        if (canMerge) {
+            currentBatch.merge(newInput, position);
+        } else {
+            batchCounter++;
+
+            currentBatch = new ActionBatch(
+                    batchCounter,
+                    actionType,
+                    newInput,
+                    position
+            );
+
+            engine.saveAction(currentBatch);
+        }
+
+        engine.clearRedoStack();
     }
 
     public void performUndo() {
@@ -94,8 +125,8 @@ public class TextEditorManager {
         }
 
         ActionBatch action = engine.undo();
-
         applyReverse(action);
+        currentBatch = null;
     }
 
     public void performRedo() {
@@ -106,18 +137,20 @@ public class TextEditorManager {
         }
 
         ActionBatch action = engine.redo();
-
         applyAction(action);
+        currentBatch = null;
     }
 
     private void applyAction(ActionBatch action) {
 
+        if (action == null) {
+            return;
+        }
+
         if (action.getActionType() == ActionType.INSERT) {
 
-            currentText.insert(
-                    action.getStartPosition(),
-                    action.getBatchedText()
-            );
+            int position = Math.min(action.getStartPosition(), currentText.length());
+            currentText.insert(position, action.getBatchedText());
 
         } else if (action.getActionType() == ActionType.DELETE) {
 
@@ -132,6 +165,10 @@ public class TextEditorManager {
 
     private void applyReverse(ActionBatch action) {
 
+        if (action == null) {
+            return;
+        }
+
         if (action.getActionType() == ActionType.INSERT) {
 
             int start = action.getStartPosition();
@@ -143,11 +180,43 @@ public class TextEditorManager {
 
         } else if (action.getActionType() == ActionType.DELETE) {
 
-            currentText.insert(
-                    action.getStartPosition(),
-                    action.getBatchedText()
-            );
+            int position = Math.min(action.getStartPosition(), currentText.length());
+            currentText.insert(position, action.getBatchedText());
         }
+    }
+
+    private boolean isContinuousInsert(int position) {
+
+        return currentBatch != null
+                && currentBatch.getActionType() == ActionType.INSERT
+                && position == currentBatch.getEndPosition();
+    }
+
+    private boolean isContinuousDelete(int start, int length) {
+
+        return currentBatch != null
+                && currentBatch.getActionType() == ActionType.DELETE
+                && (start == currentBatch.getStartPosition()
+                || start + length == currentBatch.getStartPosition());
+    }
+
+    private ActionType parseActionType(String actionType) {
+
+        if (actionType == null) {
+            throw new IllegalArgumentException("Action type must not be null");
+        }
+
+        String normalized = actionType.trim().toUpperCase();
+
+        if (normalized.equals("TYPE") || normalized.equals("INSERT")) {
+            return ActionType.INSERT;
+        }
+
+        if (normalized.equals("DELETE")) {
+            return ActionType.DELETE;
+        }
+
+        throw new IllegalArgumentException("Unsupported action type: " + actionType);
     }
 
     public String getCurrentText() {
@@ -164,6 +233,10 @@ public class TextEditorManager {
                 actionDescription,
                 LocalDateTime.now().toString()
         );
+    }
+
+    public ActionBatch getCurrentBatch() {
+        return currentBatch;
     }
 
     public UndoRedoEngine getEngine() {
