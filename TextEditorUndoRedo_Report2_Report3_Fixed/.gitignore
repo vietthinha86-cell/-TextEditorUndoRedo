@@ -1,0 +1,6 @@
+.vs/
+.vscode/
+nbproject/private/
+build/
+dist/
+*.class
